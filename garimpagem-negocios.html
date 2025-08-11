@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Garimpagem de Negócios Locais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(86, 171, 47, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+            border: 1px solid #dee2e6;
+            margin: 20px;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            font-weight: 600;
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+            transition: background-color 0.2s ease;
+        }
+
+        .status-cell {
+            text-align: center;
+            padding: 8px;
+        }
+
+        .status-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 90px;
+            transition: all 0.3s ease;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .status-selected {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .notes-input, .custom-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .notes-input:focus, .custom-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .quality-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .quality-good { background-color: #28a745; }
+        .quality-medium { background-color: #ffc107; }
+        .quality-poor { background-color: #dc3545; }
+
+        .stats {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            margin-top: -10px;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: center;
+            }
+            
+            .btn {
+                font-size: 12px;
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Sistema de Garimpagem de Negócios</h1>
+            <p>Análise completa de negócios locais baseada em dados digitais</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <button class="btn btn-primary" onclick="addBusiness()">➕ Novo Negócio</button>
+                <button class="btn btn-info" onclick="addColumn()">📋 Nova Coluna</button>
+                <button class="btn btn-success" onclick="exportData()">📊 Exportar</button>
+                <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar Tudo</button>
+            </div>
+            <div class="control-group">
+                <div class="input-group">
+                    <label>Filtrar:</label>
+                    <input type="text" id="filterInput" placeholder="Pesquisar..." onkeyup="filterTable()">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="businessTable">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">Nome do Negócio</th>
+                        <th style="width: 120px;">Seguidores IG</th>
+                        <th style="width: 120px;">Link na Bio</th>
+                        <th style="width: 120px;">Posts Frequentes</th>
+                        <th style="width: 120px;">Perfil GMB</th>
+                        <th style="width: 140px;">Última Atualização GMB</th>
+                        <th style="width: 250px;">Observações</th>
+                        <th style="width: 120px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="businessTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total de Negócios</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="selectedCount">0</div>
+                <div class="stat-label">Selecionados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="rejectedCount">0</div>
+                <div class="stat-label">Descartados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para novo negócio -->
+    <div id="businessModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('businessModal')">&times;</span>
+            <h3>Adicionar Novo Negócio</h3>
+            
+            <div class="form-group">
+                <label for="businessName">Nome do Negócio:</label>
+                <input type="text" id="businessName" placeholder="Digite o nome do negócio">
+            </div>
+            
+            <div class="form-group">
+                <label for="igFollowers">Seguidores Instagram:</label>
+                <input type="number" id="igFollowers" placeholder="Número de seguidores">
+            </div>
+            
+            <div class="form-group">
+                <label for="bioLink">Qualidade Link na Bio:</label>
+                <select id="bioLink">
+                    <option value="good">✅ Bom</option>
+                    <option value="medium">⚠️ Médio</option>
+                    <option value="poor">❌ Ruim</option>
+                    <option value="none">➖ Não tem</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="postFrequency">Posts Frequentes:</label>
+                <select id="postFrequency">
+                    <option value="daily">📅 Diário</option>
+                    <option value="weekly">📅 Semanal</option>
+                    <option value="monthly">📅 Mensal</option>
+                    <option value="rare">⏰ Raro</option>
+                    <option value="none">❌ Não posta</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gmbProfile">Perfil Google Meu Negócio:</label>
+                <select id="gmbProfile">
+                    <option value="complete">✅ Completo</option>
+                    <option value="partial">⚠️ Parcial</option>
+                    <option value="basic">📋 Básico</option>
+                    <option value="none">❌ Não tem</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gmbUpdate">Última Atualização GMB:</label>
+                <input type="date" id="gmbUpdate">
+            </div>
+            
+            <div class="form-group">
+                <label for="observations">Observações:</label>
+                <textarea id="observations" rows="3" placeholder="Observações adicionais..."></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveBusiness()">💾 Salvar Negócio</button>
+        </div>
+    </div>
+
+    <!-- Modal para nova coluna -->
+    <div id="columnModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('columnModal')">&times;</span>
+            <h3>Adicionar Nova Coluna</h3>
+            
+            <div class="form-group">
+                <label for="columnName">Nome da Coluna:</label>
+                <input type="text" id="columnName" placeholder="Digite o nome da coluna">
+            </div>
+            
+            <div class="form-group">
+                <label for="columnType">Tipo de Dados:</label>
+                <select id="columnType">
+                    <option value="text">📝 Texto</option>
+                    <option value="number">🔢 Número</option>
+                    <option value="date">📅 Data</option>
+                    <option value="select">📋 Lista</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-primary" onclick="saveColumn()">➕ Adicionar Coluna</button>
+        </div>
+    </div>
+
+    <script>
+        let businessData = [];
+        let customColumns = [];
+
+        // Dados de exemplo para demonstração
+        const sampleData = [
+            {
+                id: 1,
+                name: "Café Central",
+                igFollowers: 1500,
+                bioLink: "good",
+                postFrequency: "daily",
+                gmbProfile: "complete",
+                gmbUpdate: "2024-08-01",
+                observations: "Ótimo engajamento, posts de qualidade",
+                status: "pending"
+            },
+            {
+                id: 2,
+                name: "Padaria do João",
+                igFollowers: 850,
+                bioLink: "medium",
+                postFrequency: "weekly",
+                gmbProfile: "partial",
+                gmbUpdate: "2024-07-15",
+                observations: "Precisa melhorar presença digital",
+                status: "pending"
+            }
+        ];
+
+        // Inicializar dados de exemplo
+        businessData = [...sampleData];
+
+        function addBusiness() {
+            document.getElementById('businessModal').style.display = 'block';
+        }
+
+        function addColumn() {
+            document.getElementById('columnModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function saveBusiness() {
+            const name = document.getElementById('businessName').value;
+            const igFollowers = document.getElementById('igFollowers').value;
+            const bioLink = document.getElementById('bioLink').value;
+            const postFrequency = document.getElementById('postFrequency').value;
+            const gmbProfile = document.getElementById('gmbProfile').value;
+            const gmbUpdate = document.getElementById('gmbUpdate').value;
+            const observations = document.getElementById('observations').value;
+
+            if (!name) {
+                alert('Por favor, digite o nome do negócio');
+                return;
+            }
+
+            const newBusiness = {
+                id: Date.now(),
+                name: name,
+                igFollowers: igFollowers || 0,
+                bioLink: bioLink,
+                postFrequency: postFrequency,
+                gmbProfile: gmbProfile,
+                gmbUpdate: gmbUpdate,
+                observations: observations,
+                status: 'pending'
+            };
+
+            // Adicionar valores para colunas customizadas
+            customColumns.forEach(col => {
+                newBusiness[col.id] = '';
+            });
+
+            businessData.push(newBusiness);
+            renderTable();
+            updateStats();
+            closeModal('businessModal');
+            
+            // Limpar formulário
+            document.getElementById('businessName').value = '';
+            document.getElementById('igFollowers').value = '';
+            document.getElementById('bioLink').value = 'good';
+            document.getElementById('postFrequency').value = 'daily';
+            document.getElementById('gmbProfile').value = 'complete';
+            document.getElementById('gmbUpdate').value = '';
+            document.getElementById('observations').value = '';
+        }
+
+        function saveColumn() {
+            const columnName = document.getElementById('columnName').value;
+            const columnType = document.getElementById('columnType').value;
+
+            if (!columnName) {
+                alert('Por favor, digite o nome da coluna');
+                return;
+            }
+
+            const newColumn = {
+                id: 'col_' + Date.now(),
+                name: columnName,
+                type: columnType
+            };
+
+            customColumns.push(newColumn);
+            
+            // Adicionar coluna vazia para todos os negócios existentes
+            businessData.forEach(business => {
+                business[newColumn.id] = '';
+            });
+
+            renderTable();
+            closeModal('columnModal');
+            
+            // Limpar formulário
+            document.getElementById('columnName').value = '';
+            document.getElementById('columnType').value = 'text';
+        }
+
+        function toggleStatus(id) {
+            const business = businessData.find(b => b.id == id);
+            if (business) {
+                if (business.status === 'pending') {
+                    business.status = 'selected';
+                } else if (business.status === 'selected') {
+                    business.status = 'rejected';
+                } else {
+                    business.status = 'pending';
+                }
+                renderTable();
+                updateStats();
+            }
+        }
+
+        function updateNotes(id, value) {
+            const business = businessData.find(b => b.id == id);
+            if (business) {
+                business.observations = value;
+            }
+        }
+
+        function updateCustomField(id, columnId, value) {
+            const business = businessData.find(b => b.id == id);
+            if (business) {
+                business[columnId] = value;
+            }
+        }
+
+        function deleteBusiness(id) {
+            if (confirm('Tem certeza que deseja excluir este negócio?')) {
+                businessData = businessData.filter(b => b.id != id);
+                renderTable();
+                updateStats();
+            }
+        }
+
+        function getStatusButton(status, id) {
+            const statusConfig = {
+                pending: { text: '⏳ Pendente', class: 'status-pending' },
+                selected: { text: '✅ Selecionado', class: 'status-selected' },
+                rejected: { text: '❌ Descartado', class: 'status-rejected' }
+            };
+            
+            const config = statusConfig[status];
+            return `<button class="status-btn ${config.class}" onclick="toggleStatus(${id})">${config.text}</button>`;
+        }
+
+        function getQualityIndicator(quality) {
+            const qualityConfig = {
+                good: { text: '✅ Bom', class: 'quality-good' },
+                medium: { text: '⚠️ Médio', class: 'quality-medium' },
+                poor: { text: '❌ Ruim', class: 'quality-poor' },
+                none: { text: '➖ Não tem', class: 'quality-poor' }
+            };
+            
+            const config = qualityConfig[quality] || qualityConfig.none;
+            return `<span class="quality-indicator ${config.class}"></span>${config.text}`;
+        }
+
+        function getFrequencyText(frequency) {
+            const frequencies = {
+                daily: '📅 Diário',
+                weekly: '📅 Semanal',
+                monthly: '📅 Mensal',
+                rare: '⏰ Raro',
+                none: '❌ Não posta'
+            };
+            return frequencies[frequency] || frequency;
+        }
+
+        function getGMBText(gmb) {
+            const gmbTypes = {
+                complete: '✅ Completo',
+                partial: '⚠️ Parcial',
+                basic: '📋 Básico',
+                none: '❌ Não tem'
+            };
+            return gmbTypes[gmb] || gmb;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Não informado';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('businessTableBody');
+            const thead = document.querySelector('#businessTable thead tr');
+            
+            // Atualizar cabeçalho com colunas customizadas
+            const baseHeaders = thead.querySelectorAll('th');
+            const existingCustomHeaders = thead.querySelectorAll('.custom-header');
+            existingCustomHeaders.forEach(header => header.remove());
+            
+            customColumns.forEach(column => {
+                const th = document.createElement('th');
+                th.className = 'custom-header';
+                th.style.width = '150px';
+                th.innerHTML = `${column.name} <button onclick="removeColumn('${column.id}')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:12px;">❌</button>`;
+                thead.insertBefore(th, thead.lastElementChild);
+            });
+            
+            tbody.innerHTML = '';
+            
+            businessData.forEach(business => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${business.name}</strong>
+                        <br><button onclick="deleteBusiness(${business.id})" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:12px;margin-top:5px;">🗑️ Excluir</button>
+                    </td>
+                    <td>
+                        <div class="tooltip">
+                            ${business.igFollowers.toLocaleString('pt-BR')}
+                            <span class="tooltiptext">Número de seguidores no Instagram</span>
+                        </div>
+                    </td>
+                    <td>${getQualityIndicator(business.bioLink)}</td>
+                    <td>${getFrequencyText(business.postFrequency)}</td>
+                    <td>${getGMBText(business.gmbProfile)}</td>
+                    <td>${formatDate(business.gmbUpdate)}</td>
+                    <td>
+                        <textarea class="notes-input" 
+                                onblur="updateNotes(${business.id}, this.value)" 
+                                placeholder="Adicione observações...">${business.observations || ''}</textarea>
+                    </td>
+                    ${customColumns.map(column => `
+                        <td>
+                            <input type="${column.type === 'number' ? 'number' : column.type === 'date' ? 'date' : 'text'}" 
+                                   class="custom-input" 
+                                   value="${business[column.id] || ''}"
+                                   onblur="updateCustomField(${business.id}, '${column.id}', this.value)"
+                                   placeholder="${column.name}">
+                        </td>
+                    `).join('')}
+                    <td class="status-cell">${getStatusButton(business.status, business.id)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function removeColumn(columnId) {
+            if (confirm('Tem certeza que deseja remover esta coluna?')) {
+                customColumns = customColumns.filter(col => col.id !== columnId);
+                businessData.forEach(business => {
+                    delete business[columnId];
+                });
+                renderTable();
+            }
+        }
+
+        function updateStats() {
+            const total = businessData.length;
+            const selected = businessData.filter(b => b.status === 'selected').length;
+            const rejected = businessData.filter(b => b.status === 'rejected').length;
+            const pending = businessData.filter(b => b.status === 'pending').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('selectedCount').textContent = selected;
+            document.getElementById('rejectedCount').textContent = rejected;
+            document.getElementById('pendingCount').textContent = pending;
+        }
+
+        function filterTable() {
+            const filter = document.getElementById('filterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#businessTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function exportData() {
+            const dataToExport = businessData.map(business => {
+                const exported = {
+                    'Nome': business.name,
+                    'Seguidores IG': business.igFollowers,
+                    'Link na Bio': business.bioLink,
+                    'Posts Frequentes': business.postFrequency,
+                    'Perfil GMB': business.gmbProfile,
+                    'Última Atualização GMB': business.gmbUpdate,
+                    'Observações': business.observations,
+                    'Status': business.status
+                };
+                
+                // Adicionar colunas customizadas
+                customColumns.forEach(column => {
+                    exported[column.name] = business[column.id] || '';
+                });
+                
+                return exported;
+            });
+            
+            const csv = convertToCSV(dataToExport);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `garimpagem_negocios_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header =>
