@@ -366,6 +366,30 @@
             opacity: 1;
         }
 
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .delete-btn:hover {
+            background: #f8d7da;
+        }
+
+        .column-remove {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -392,15 +416,15 @@
 
         <div class="controls">
             <div class="control-group">
-                <button class="btn btn-primary" onclick="addBusiness()">➕ Novo Negócio</button>
-                <button class="btn btn-info" onclick="addColumn()">📋 Nova Coluna</button>
-                <button class="btn btn-success" onclick="exportData()">📊 Exportar</button>
-                <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar Tudo</button>
+                <button class="btn btn-primary" onclick="BusinessSystem.addBusiness()">➕ Novo Negócio</button>
+                <button class="btn btn-info" onclick="BusinessSystem.addColumn()">📋 Nova Coluna</button>
+                <button class="btn btn-success" onclick="BusinessSystem.exportData()">📊 Exportar</button>
+                <button class="btn btn-danger" onclick="BusinessSystem.clearAll()">🗑️ Limpar Tudo</button>
             </div>
             <div class="control-group">
                 <div class="input-group">
                     <label>Filtrar:</label>
-                    <input type="text" id="filterInput" placeholder="Pesquisar..." onkeyup="filterTable()">
+                    <input type="text" id="filterInput" placeholder="Pesquisar..." onkeyup="BusinessSystem.filterTable()">
                 </div>
             </div>
         </div>
@@ -447,7 +471,7 @@
     <!-- Modal para novo negócio -->
     <div id="businessModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('businessModal')">&times;</span>
+            <span class="close" onclick="BusinessSystem.closeModal('businessModal')">&times;</span>
             <h3>Adicionar Novo Negócio</h3>
             
             <div class="form-group">
@@ -501,14 +525,14 @@
                 <textarea id="observations" rows="3" placeholder="Observações adicionais..."></textarea>
             </div>
             
-            <button class="btn btn-primary" onclick="saveBusiness()">💾 Salvar Negócio</button>
+            <button class="btn btn-primary" onclick="BusinessSystem.saveBusiness()">💾 Salvar Negócio</button>
         </div>
     </div>
 
     <!-- Modal para nova coluna -->
     <div id="columnModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('columnModal')">&times;</span>
+            <span class="close" onclick="BusinessSystem.closeModal('columnModal')">&times;</span>
             <h3>Adicionar Nova Coluna</h3>
             
             <div class="form-group">
@@ -526,377 +550,367 @@
                 </select>
             </div>
             
-            <button class="btn btn-primary" onclick="saveColumn()">➕ Adicionar Coluna</button>
+            <button class="btn btn-primary" onclick="BusinessSystem.saveColumn()">➕ Adicionar Coluna</button>
         </div>
     </div>
 
     <script>
-        let businessData = [];
-        let customColumns = [];
-
-        // Dados de exemplo para demonstração
-        const sampleData = [
-            {
-                id: 1,
-                name: "Café Central",
-                igFollowers: 1500,
-                bioLink: "good",
-                postFrequency: "daily",
-                gmbProfile: "complete",
-                gmbUpdate: "2024-08-01",
-                observations: "Ótimo engajamento, posts de qualidade",
-                status: "pending"
-            },
-            {
-                id: 2,
-                name: "Padaria do João",
-                igFollowers: 850,
-                bioLink: "medium",
-                postFrequency: "weekly",
-                gmbProfile: "partial",
-                gmbUpdate: "2024-07-15",
-                observations: "Precisa melhorar presença digital",
-                status: "pending"
-            }
-        ];
-
-        // Inicializar dados de exemplo
-        businessData = [...sampleData];
-
-        function addBusiness() {
-            document.getElementById('businessModal').style.display = 'block';
-        }
-
-        function addColumn() {
-            document.getElementById('columnModal').style.display = 'block';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function saveBusiness() {
-            const name = document.getElementById('businessName').value;
-            const igFollowers = document.getElementById('igFollowers').value;
-            const bioLink = document.getElementById('bioLink').value;
-            const postFrequency = document.getElementById('postFrequency').value;
-            const gmbProfile = document.getElementById('gmbProfile').value;
-            const gmbUpdate = document.getElementById('gmbUpdate').value;
-            const observations = document.getElementById('observations').value;
-
-            if (!name) {
-                alert('Por favor, digite o nome do negócio');
-                return;
-            }
-
-            const newBusiness = {
-                id: Date.now(),
-                name: name,
-                igFollowers: igFollowers || 0,
-                bioLink: bioLink,
-                postFrequency: postFrequency,
-                gmbProfile: gmbProfile,
-                gmbUpdate: gmbUpdate,
-                observations: observations,
-                status: 'pending'
-            };
-
-            // Adicionar valores para colunas customizadas
-            customColumns.forEach(col => {
-                newBusiness[col.id] = '';
-            });
-
-            businessData.push(newBusiness);
-            renderTable();
-            updateStats();
-            closeModal('businessModal');
-            
-            // Limpar formulário
-            document.getElementById('businessName').value = '';
-            document.getElementById('igFollowers').value = '';
-            document.getElementById('bioLink').value = 'good';
-            document.getElementById('postFrequency').value = 'daily';
-            document.getElementById('gmbProfile').value = 'complete';
-            document.getElementById('gmbUpdate').value = '';
-            document.getElementById('observations').value = '';
-        }
-
-        function saveColumn() {
-            const columnName = document.getElementById('columnName').value;
-            const columnType = document.getElementById('columnType').value;
-
-            if (!columnName) {
-                alert('Por favor, digite o nome da coluna');
-                return;
-            }
-
-            const newColumn = {
-                id: 'col_' + Date.now(),
-                name: columnName,
-                type: columnType
-            };
-
-            customColumns.push(newColumn);
-            
-            // Adicionar coluna vazia para todos os negócios existentes
-            businessData.forEach(business => {
-                business[newColumn.id] = '';
-            });
-
-            renderTable();
-            closeModal('columnModal');
-            
-            // Limpar formulário
-            document.getElementById('columnName').value = '';
-            document.getElementById('columnType').value = 'text';
-        }
-
-        function toggleStatus(id) {
-            const business = businessData.find(b => b.id == id);
-            if (business) {
-                if (business.status === 'pending') {
-                    business.status = 'selected';
-                } else if (business.status === 'selected') {
-                    business.status = 'rejected';
-                } else {
-                    business.status = 'pending';
+        // Sistema de Garimpagem de Negócios - Versão Compatível
+        const BusinessSystem = {
+            businessData: [
+                {
+                    id: 1,
+                    name: "Café Central",
+                    igFollowers: 1500,
+                    bioLink: "good",
+                    postFrequency: "daily",
+                    gmbProfile: "complete",
+                    gmbUpdate: "2024-08-01",
+                    observations: "Ótimo engajamento, posts de qualidade",
+                    status: "pending"
+                },
+                {
+                    id: 2,
+                    name: "Padaria do João",
+                    igFollowers: 850,
+                    bioLink: "medium",
+                    postFrequency: "weekly",
+                    gmbProfile: "partial",
+                    gmbUpdate: "2024-07-15",
+                    observations: "Precisa melhorar presença digital",
+                    status: "pending"
                 }
-                renderTable();
-                updateStats();
-            }
-        }
-
-        function updateNotes(id, value) {
-            const business = businessData.find(b => b.id == id);
-            if (business) {
-                business.observations = value;
-            }
-        }
-
-        function updateCustomField(id, columnId, value) {
-            const business = businessData.find(b => b.id == id);
-            if (business) {
-                business[columnId] = value;
-            }
-        }
-
-        function deleteBusiness(id) {
-            if (confirm('Tem certeza que deseja excluir este negócio?')) {
-                businessData = businessData.filter(b => b.id != id);
-                renderTable();
-                updateStats();
-            }
-        }
-
-        function getStatusButton(status, id) {
-            const statusConfig = {
-                pending: { text: '⏳ Pendente', class: 'status-pending' },
-                selected: { text: '✅ Selecionado', class: 'status-selected' },
-                rejected: { text: '❌ Descartado', class: 'status-rejected' }
-            };
+            ],
             
-            const config = statusConfig[status];
-            return `<button class="status-btn ${config.class}" onclick="toggleStatus(${id})">${config.text}</button>`;
-        }
+            customColumns: [],
 
-        function getQualityIndicator(quality) {
-            const qualityConfig = {
-                good: { text: '✅ Bom', class: 'quality-good' },
-                medium: { text: '⚠️ Médio', class: 'quality-medium' },
-                poor: { text: '❌ Ruim', class: 'quality-poor' },
-                none: { text: '➖ Não tem', class: 'quality-poor' }
-            };
-            
-            const config = qualityConfig[quality] || qualityConfig.none;
-            return `<span class="quality-indicator ${config.class}"></span>${config.text}`;
-        }
+            addBusiness: function() {
+                document.getElementById('businessModal').style.display = 'block';
+            },
 
-        function getFrequencyText(frequency) {
-            const frequencies = {
-                daily: '📅 Diário',
-                weekly: '📅 Semanal',
-                monthly: '📅 Mensal',
-                rare: '⏰ Raro',
-                none: '❌ Não posta'
-            };
-            return frequencies[frequency] || frequency;
-        }
+            addColumn: function() {
+                document.getElementById('columnModal').style.display = 'block';
+            },
 
-        function getGMBText(gmb) {
-            const gmbTypes = {
-                complete: '✅ Completo',
-                partial: '⚠️ Parcial',
-                basic: '📋 Básico',
-                none: '❌ Não tem'
-            };
-            return gmbTypes[gmb] || gmb;
-        }
+            closeModal: function(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            },
 
-        function formatDate(dateString) {
-            if (!dateString) return 'Não informado';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('pt-BR');
-        }
+            saveBusiness: function() {
+                const name = document.getElementById('businessName').value;
+                const igFollowers = document.getElementById('igFollowers').value;
+                const bioLink = document.getElementById('bioLink').value;
+                const postFrequency = document.getElementById('postFrequency').value;
+                const gmbProfile = document.getElementById('gmbProfile').value;
+                const gmbUpdate = document.getElementById('gmbUpdate').value;
+                const observations = document.getElementById('observations').value;
 
-        function renderTable() {
-            const tbody = document.getElementById('businessTableBody');
-            const thead = document.querySelector('#businessTable thead tr');
-            
-            // Atualizar cabeçalho com colunas customizadas
-            const baseHeaders = thead.querySelectorAll('th');
-            const existingCustomHeaders = thead.querySelectorAll('.custom-header');
-            existingCustomHeaders.forEach(header => header.remove());
-            
-            customColumns.forEach(column => {
-                const th = document.createElement('th');
-                th.className = 'custom-header';
-                th.style.width = '150px';
-                th.innerHTML = `${column.name} <button onclick="removeColumn('${column.id}')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:12px;">❌</button>`;
-                thead.insertBefore(th, thead.lastElementChild);
-            });
-            
-            tbody.innerHTML = '';
-            
-            businessData.forEach(business => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <strong>${business.name}</strong>
-                        <br><button onclick="deleteBusiness(${business.id})" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:12px;margin-top:5px;">🗑️ Excluir</button>
-                    </td>
-                    <td>
-                        <div class="tooltip">
-                            ${business.igFollowers.toLocaleString('pt-BR')}
-                            <span class="tooltiptext">Número de seguidores no Instagram</span>
-                        </div>
-                    </td>
-                    <td>${getQualityIndicator(business.bioLink)}</td>
-                    <td>${getFrequencyText(business.postFrequency)}</td>
-                    <td>${getGMBText(business.gmbProfile)}</td>
-                    <td>${formatDate(business.gmbUpdate)}</td>
-                    <td>
-                        <textarea class="notes-input" 
-                                onblur="updateNotes(${business.id}, this.value)" 
-                                placeholder="Adicione observações...">${business.observations || ''}</textarea>
-                    </td>
-                    ${customColumns.map(column => `
-                        <td>
-                            <input type="${column.type === 'number' ? 'number' : column.type === 'date' ? 'date' : 'text'}" 
-                                   class="custom-input" 
-                                   value="${business[column.id] || ''}"
-                                   onblur="updateCustomField(${business.id}, '${column.id}', this.value)"
-                                   placeholder="${column.name}">
-                        </td>
-                    `).join('')}
-                    <td class="status-cell">${getStatusButton(business.status, business.id)}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+                if (!name) {
+                    alert('Por favor, digite o nome do negócio');
+                    return;
+                }
 
-        function removeColumn(columnId) {
-            if (confirm('Tem certeza que deseja remover esta coluna?')) {
-                customColumns = customColumns.filter(col => col.id !== columnId);
-                businessData.forEach(business => {
-                    delete business[columnId];
+                const newBusiness = {
+                    id: Date.now(),
+                    name: name,
+                    igFollowers: igFollowers || 0,
+                    bioLink: bioLink,
+                    postFrequency: postFrequency,
+                    gmbProfile: gmbProfile,
+                    gmbUpdate: gmbUpdate,
+                    observations: observations,
+                    status: 'pending'
+                };
+
+                // Adicionar valores para colunas customizadas
+                this.customColumns.forEach(col => {
+                    newBusiness[col.id] = '';
                 });
-                renderTable();
-            }
-        }
 
-        function updateStats() {
-            const total = businessData.length;
-            const selected = businessData.filter(b => b.status === 'selected').length;
-            const rejected = businessData.filter(b => b.status === 'rejected').length;
-            const pending = businessData.filter(b => b.status === 'pending').length;
-            
-            document.getElementById('totalCount').textContent = total;
-            document.getElementById('selectedCount').textContent = selected;
-            document.getElementById('rejectedCount').textContent = rejected;
-            document.getElementById('pendingCount').textContent = pending;
-        }
+                this.businessData.push(newBusiness);
+                this.renderTable();
+                this.updateStats();
+                this.closeModal('businessModal');
+                
+                // Limpar formulário
+                document.getElementById('businessName').value = '';
+                document.getElementById('igFollowers').value = '';
+                document.getElementById('bioLink').value = 'good';
+                document.getElementById('postFrequency').value = 'daily';
+                document.getElementById('gmbProfile').value = 'complete';
+                document.getElementById('gmbUpdate').value = '';
+                document.getElementById('observations').value = '';
+            },
 
-        function filterTable() {
-            const filter = document.getElementById('filterInput').value.toLowerCase();
-            const rows = document.querySelectorAll('#businessTableBody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
-        }
+            saveColumn: function() {
+                const columnName = document.getElementById('columnName').value;
+                const columnType = document.getElementById('columnType').value;
 
-        function exportData() {
-            const dataToExport = businessData.map(business => {
-                const exported = {
-                    'Nome': business.name,
-                    'Seguidores IG': business.igFollowers,
-                    'Link na Bio': business.bioLink,
-                    'Posts Frequentes': business.postFrequency,
-                    'Perfil GMB': business.gmbProfile,
-                    'Última Atualização GMB': business.gmbUpdate,
-                    'Observações': business.observations,
-                    'Status': business.status
+                if (!columnName) {
+                    alert('Por favor, digite o nome da coluna');
+                    return;
+                }
+
+                const newColumn = {
+                    id: 'col_' + Date.now(),
+                    name: columnName,
+                    type: columnType
+                };
+
+                this.customColumns.push(newColumn);
+                
+                // Adicionar coluna vazia para todos os negócios existentes
+                this.businessData.forEach(business => {
+                    business[newColumn.id] = '';
+                });
+
+                this.renderTable();
+                this.closeModal('columnModal');
+                
+                // Limpar formulário
+                document.getElementById('columnName').value = '';
+                document.getElementById('columnType').value = 'text';
+            },
+
+            toggleStatus: function(id) {
+                const business = this.businessData.find(b => b.id == id);
+                if (business) {
+                    if (business.status === 'pending') {
+                        business.status = 'selected';
+                    } else if (business.status === 'selected') {
+                        business.status = 'rejected';
+                    } else {
+                        business.status = 'pending';
+                    }
+                    this.renderTable();
+                    this.updateStats();
+                }
+            },
+
+            updateNotes: function(id, value) {
+                const business = this.businessData.find(b => b.id == id);
+                if (business) {
+                    business.observations = value;
+                }
+            },
+
+            updateCustomField: function(id, columnId, value) {
+                const business = this.businessData.find(b => b.id == id);
+                if (business) {
+                    business[columnId] = value;
+                }
+            },
+
+            deleteBusiness: function(id) {
+                if (confirm('Tem certeza que deseja excluir este negócio?')) {
+                    this.businessData = this.businessData.filter(b => b.id != id);
+                    this.renderTable();
+                    this.updateStats();
+                }
+            },
+
+            getStatusButton: function(status, id) {
+                const statusConfig = {
+                    pending: { text: '⏳ Pendente', class: 'status-pending' },
+                    selected: { text: '✅ Selecionado', class: 'status-selected' },
+                    rejected: { text: '❌ Descartado', class: 'status-rejected' }
                 };
                 
-                // Adicionar colunas customizadas
-                customColumns.forEach(column => {
-                    exported[column.name] = business[column.id] || '';
+                const config = statusConfig[status];
+                return '<button class="status-btn ' + config.class + '" onclick="BusinessSystem.toggleStatus(' + id + ')">' + config.text + '</button>';
+            },
+
+            getQualityIndicator: function(quality) {
+                const qualityConfig = {
+                    good: { text: '✅ Bom', class: 'quality-good' },
+                    medium: { text: '⚠️ Médio', class: 'quality-medium' },
+                    poor: { text: '❌ Ruim', class: 'quality-poor' },
+                    none: { text: '➖ Não tem', class: 'quality-poor' }
+                };
+                
+                const config = qualityConfig[quality] || qualityConfig.none;
+                return '<span class="quality-indicator ' + config.class + '"></span>' + config.text;
+            },
+
+            getFrequencyText: function(frequency) {
+                const frequencies = {
+                    daily: '📅 Diário',
+                    weekly: '📅 Semanal',
+                    monthly: '📅 Mensal',
+                    rare: '⏰ Raro',
+                    none: '❌ Não posta'
+                };
+                return frequencies[frequency] || frequency;
+            },
+
+            getGMBText: function(gmb) {
+                const gmbTypes = {
+                    complete: '✅ Completo',
+                    partial: '⚠️ Parcial',
+                    basic: '📋 Básico',
+                    none: '❌ Não tem'
+                };
+                return gmbTypes[gmb] || gmb;
+            },
+
+            formatDate: function(dateString) {
+                if (!dateString) return 'Não informado';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR');
+            },
+
+            renderTable: function() {
+                const tbody = document.getElementById('businessTableBody');
+                const thead = document.querySelector('#businessTable thead tr');
+                
+                // Atualizar cabeçalho com colunas customizadas
+                const existingCustomHeaders = thead.querySelectorAll('.custom-header');
+                existingCustomHeaders.forEach(header => header.remove());
+                
+                this.customColumns.forEach(column => {
+                    const th = document.createElement('th');
+                    th.className = 'custom-header';
+                    th.style.width = '150px';
+                    th.innerHTML = column.name + ' <button class="column-remove" onclick="BusinessSystem.removeColumn(\'' + column.id + '\')">❌</button>';
+                    thead.insertBefore(th, thead.lastElementChild);
                 });
                 
-                return exported;
-            });
-            
-            const csv = convertToCSV(dataToExport);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `garimpagem_negocios_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        }
+                tbody.innerHTML = '';
+                
+                this.businessData.forEach(business => {
+                    const row = document.createElement('tr');
+                    let customColumnsHtml = '';
+                    
+                    this.customColumns.forEach(column => {
+                        customColumnsHtml += '<td><input type="' + (column.type === 'number' ? 'number' : column.type === 'date' ? 'date' : 'text') + '" class="custom-input" value="' + (business[column.id] || '') + '" onblur="BusinessSystem.updateCustomField(' + business.id + ', \'' + column.id + '\', this.value)" placeholder="' + column.name + '"></td>';
+                    });
+                    
+                    row.innerHTML = '<td><strong>' + business.name + '</strong><br><button class="delete-btn" onclick="BusinessSystem.deleteBusiness(' + business.id + ')">🗑️ Excluir</button></td>' +
+                        '<td><div class="tooltip">' + Number(business.igFollowers).toLocaleString('pt-BR') + '<span class="tooltiptext">Número de seguidores no Instagram</span></div></td>' +
+                        '<td>' + this.getQualityIndicator(business.bioLink) + '</td>' +
+                        '<td>' + this.getFrequencyText(business.postFrequency) + '</td>' +
+                        '<td>' + this.getGMBText(business.gmbProfile) + '</td>' +
+                        '<td>' + this.formatDate(business.gmbUpdate) + '</td>' +
+                        '<td><textarea class="notes-input" onblur="BusinessSystem.updateNotes(' + business.id + ', this.value)" placeholder="Adicione observações...">' + (business.observations || '') + '</textarea></td>' +
+                        customColumnsHtml +
+                        '<td class="status-cell">' + this.getStatusButton(business.status, business.id) + '</td>';
+                    
+                    tbody.appendChild(row);
+                });
+            },
 
-        function convertToCSV(data) {
-            if (data.length === 0) return '';
-            
-            const headers = Object.keys(data[0]);
-            const csvContent = [
-                headers.join(','),
-                ...data.map(row => headers.map(header => {
-                    const value = row[header] || '';
-                    return `"${String(value).replace(/"/g, '""')}"`;
-                }).join(','))
-            ].join('\n');
-            
-            return csvContent;
-        }
-
-        function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
-                businessData = [];
-                customColumns = [];
-                renderTable();
-                updateStats();
-            }
-        }
-
-        // Fechar modais quando clicar fora
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
+            removeColumn: function(columnId) {
+                if (confirm('Tem certeza que deseja remover esta coluna?')) {
+                    this.customColumns = this.customColumns.filter(col => col.id !== columnId);
+                    this.businessData.forEach(business => {
+                        delete business[columnId];
+                    });
+                    this.renderTable();
                 }
+            },
+
+            updateStats: function() {
+                const total = this.businessData.length;
+                const selected = this.businessData.filter(b => b.status === 'selected').length;
+                const rejected = this.businessData.filter(b => b.status === 'rejected').length;
+                const pending = this.businessData.filter(b => b.status === 'pending').length;
+                
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('selectedCount').textContent = selected;
+                document.getElementById('rejectedCount').textContent = rejected;
+                document.getElementById('pendingCount').textContent = pending;
+            },
+
+            filterTable: function() {
+                const filter = document.getElementById('filterInput').value.toLowerCase();
+                const rows = document.querySelectorAll('#businessTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            },
+
+            exportData: function() {
+                const dataToExport = this.businessData.map(business => {
+                    const exported = {
+                        'Nome': business.name,
+                        'Seguidores IG': business.igFollowers,
+                        'Link na Bio': business.bioLink,
+                        'Posts Frequentes': business.postFrequency,
+                        'Perfil GMB': business.gmbProfile,
+                        'Última Atualização GMB': business.gmbUpdate,
+                        'Observações': business.observations,
+                        'Status': business.status
+                    };
+                    
+                    // Adicionar colunas customizadas
+                    this.customColumns.forEach(column => {
+                        exported[column.name] = business[column.id] || '';
+                    });
+                    
+                    return exported;
+                });
+                
+                const csv = this.convertToCSV(dataToExport);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'garimpagem_negocios_' + new Date().toISOString().split('T')[0] + '.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            },
+
+            convertToCSV: function(data) {
+                if (data.length === 0) return '';
+                
+                const headers = Object.keys(data[0]);
+                const csvContent = [
+                    headers.join(','),
+                    ...data.map(row => headers.map(header => {
+                        const value = row[header] || '';
+                        return '"' + String(value).replace(/"/g, '""') + '"';
+                    }).join(','))
+                ].join('\n');
+                
+                return csvContent;
+            },
+
+            clearAll: function() {
+                if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                    this.businessData = [];
+                    this.customColumns = [];
+                    this.renderTable();
+                    this.updateStats();
+                }
+            },
+
+            init: function() {
+                console.log('Sistema de Garimpagem iniciado!');
+                this.renderTable();
+                this.updateStats();
+                
+                // Fechar modais quando clicar fora
+                window.onclick = function(event) {
+                    const modals = document.querySelectorAll('.modal');
+                    modals.forEach(modal => {
+                        if (event.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+                };
+            }
+        };
+
+        // Inicializar quando a página carregar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                BusinessSystem.init();
             });
+        } else {
+            BusinessSystem.init();
         }
-
-        // Inicializar o sistema quando a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Sistema iniciado!');
-            renderTable();
-            updateStats();
-        });
-
-        // Renderizar dados iniciais
-        renderTable();
-        updateStats();
+    </script>
+</body>
+</html>
