@@ -862,4 +862,41 @@
             const headers = Object.keys(data[0]);
             const csvContent = [
                 headers.join(','),
-                ...data.map(row => headers.map(header =>
+                ...data.map(row => headers.map(header => {
+                    const value = row[header] || '';
+                    return `"${String(value).replace(/"/g, '""')}"`;
+                }).join(','))
+            ].join('\n');
+            
+            return csvContent;
+        }
+
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                businessData = [];
+                customColumns = [];
+                renderTable();
+                updateStats();
+            }
+        }
+
+        // Fechar modais quando clicar fora
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Inicializar o sistema quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Sistema iniciado!');
+            renderTable();
+            updateStats();
+        });
+
+        // Renderizar dados iniciais
+        renderTable();
+        updateStats();
