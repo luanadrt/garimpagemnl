@@ -271,6 +271,7 @@
             font-size: 14px;
         }
 
+        /* MODAL CORRIGIDO - PRINCIPAL CORREÇÃO */
         .modal {
             display: none;
             position: fixed;
@@ -280,16 +281,28 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
         }
 
         .modal-content {
             background-color: white;
-            margin: 15% auto;
             padding: 30px;
             border-radius: 15px;
-            width: 90%;
+            width: 100%;
             max-width: 500px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            margin: auto;
         }
 
         .modal h3 {
@@ -315,6 +328,7 @@
             border: 2px solid #dee2e6;
             border-radius: 8px;
             font-size: 14px;
+            box-sizing: border-box;
         }
 
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
@@ -403,6 +417,12 @@
             .btn {
                 font-size: 12px;
                 padding: 10px 16px;
+            }
+
+            .modal-content {
+                margin: 10px;
+                padding: 20px;
+                max-height: calc(100vh - 20px);
             }
         }
     </style>
@@ -584,16 +604,27 @@
             
             customColumns: [],
 
+            // Função para abrir modal corrigida
             addBusiness: function() {
-                document.getElementById('businessModal').style.display = 'block';
+                const modal = document.getElementById('businessModal');
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Previne scroll da página principal
             },
 
             addColumn: function() {
-                document.getElementById('columnModal').style.display = 'block';
+                const modal = document.getElementById('columnModal');
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             },
 
+            // Função para fechar modal corrigida
             closeModal: function(modalId) {
-                document.getElementById(modalId).style.display = 'none';
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restaura scroll da página principal
             },
 
             saveBusiness: function() {
@@ -843,74 +874,84 @@
                         'Observações': business.observations,
                         'Status': business.status
                     };
-                    
+
                     // Adicionar colunas customizadas
-                    this.customColumns.forEach(column => {
-                        exported[column.name] = business[column.id] || '';
+                    this.customColumns.forEach(col => {
+                        exported[col.name] = business[col.id] || '';
                     });
-                    
+
                     return exported;
                 });
-                
-                const csv = this.convertToCSV(dataToExport);
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'garimpagem_negocios_' + new Date().toISOString().split('T')[0] + '.csv';
-                a.click();
-                window.URL.revokeObjectURL(url);
-            },
 
-            convertToCSV: function(data) {
-                if (data.length === 0) return '';
+                // Criar CSV
+                const headers = Object.keys(dataToExport[0] || {});
+                let csvContent = headers.join(',') + '\n';
                 
-                const headers = Object.keys(data[0]);
-                const csvContent = [
-                    headers.join(','),
-                    ...data.map(row => headers.map(header => {
+                dataToExport.forEach(row => {
+                    const values = headers.map(header => {
                         const value = row[header] || '';
                         return '"' + String(value).replace(/"/g, '""') + '"';
-                    }).join(','))
-                ].join('\n');
-                
-                return csvContent;
-            },
+                    });
+                    csvContent += values.join(',') + '\n';
+                });
 
-            clearAll: function() {
-                if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
-                    this.businessData = [];
-                    this.customColumns = [];
-                    this.renderTable();
-                    this.updateStats();
+                // Download do arquivo
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'garimpagem_negocios_' + new Date().toISOString().slice(0,10) + '.csv');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             },
 
+            clearAll: function() {
+                if (confirm('ATENÇÃO: Esta ação irá apagar todos os dados. Tem certeza?')) {
+                    if (confirm('Última confirmação: TODOS os negócios serão perdidos. Continuar?')) {
+                        this.businessData = [];
+                        this.customColumns = [];
+                        this.renderTable();
+                        this.updateStats();
+                        alert('Todos os dados foram removidos!');
+                    }
+                }
+            },
+
+            // Inicialização do sistema
             init: function() {
-                console.log('Sistema de Garimpagem iniciado!');
                 this.renderTable();
                 this.updateStats();
-                
-                // Fechar modais quando clicar fora
-                window.onclick = function(event) {
-                    const modals = document.querySelectorAll('.modal');
-                    modals.forEach(modal => {
-                        if (event.target === modal) {
-                            modal.style.display = 'none';
-                        }
-                    });
-                };
             }
         };
 
-        // Inicializar quando a página carregar
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                BusinessSystem.init();
+        // Eventos para fechar modal
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    BusinessSystem.closeModal(modal.id);
+                }
             });
-        } else {
+        });
+
+        // Evento para fechar modal com ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal.show');
+                openModals.forEach(modal => {
+                    BusinessSystem.closeModal(modal.id);
+                });
+            }
+        });
+
+        // Inicializar sistema quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
             BusinessSystem.init();
-        }
+        });
     </script>
 </body>
 </html>
